@@ -297,6 +297,8 @@ while True:
     ax1.cla()
     ax1.imshow(pbyteraw, cmap='jet')
     ax1.set_title('Camera Image')
+    ax1.set_ylabel('y pixel')
+    ax1.set_xlabel('x pixel')
     ax1.text(0, 100, 'Ratio: ' + str(np.round(ratio, 5)), color='black', backgroundcolor='yellow')
 
     # add rectangle patches
