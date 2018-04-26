@@ -135,9 +135,8 @@ def toggle_selector(event):
         after_selection()
 
     if event.key in ['r'] and toggle_selector.rs.active:
-        mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)), dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
-        pbyteraw[pbyteraw < threshhold] = 0
-        b.set_data(pbyteraw)
+        image = take_image()
+        b.set_data(image)
         # print('new image')
         # print('Frame:' + str(dwFrameNo.value))
         plt.pause(0.001)
@@ -162,9 +161,8 @@ def goodorbad(event):
 
     if event.key in ['r']:
         # print('refrsh')
-        mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)), dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
-        pbyteraw[pbyteraw < threshhold] = 0
-        b.set_data(pbyteraw)
+        image = take_image()
+        b.set_data(image)
         # print('new image')
         # print('Frame:' + str(dwFrameNo.value))
         plt.pause(0.001)
@@ -192,16 +190,15 @@ def get_rectangle():
     fig, ax = plt.subplots(1)
 
     # take first image
-    mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
-                                dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
+    image = take_image()
 
     # print('Frame:' + str(dwFrameNo.value))
-    pbyteraw[pbyteraw < threshhold] = 0
+
 
     # pbyteraw[:, :] = np.zeros(np.shape(pbyteraw))
     # pbyteraw[100:200, 100:200] = 10
 
-    b = ax.imshow(pbyteraw, cmap='jet')
+    b = ax.imshow(image, cmap='jet')
     if inner_rectangle:
         # print("draw inner rectangle")
         # print('inner_rectangle:', inner_rectangle)
@@ -227,16 +224,20 @@ def get_rectangle():
     plt.show()
 
 
+def take_image():
+    mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
+                                dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
+    image = pbyteraw
+    return image
+
+
 def draw_inner_and_outer():
     global b
     fig, ax = plt.subplots(1)
     # take first image
-    mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
-                                dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
-
+    image = take_image()
     # print('Frame:' + str(dwFrameNo.value))
-    pbyteraw[pbyteraw < threshhold] = 0
-    b = ax.imshow(pbyteraw, cmap='jet')
+    b = ax.imshow(image, cmap='jet')
     if inner_rectangle:
         ax.add_patch(patch.Rectangle((inner_rectangle.x1, inner_rectangle.y1),
                                      inner_rectangle.x2 - inner_rectangle.x1,
@@ -285,17 +286,15 @@ while True:
         plots_initialized = True
 
     # take first image
-    mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
-                                dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
-
-    inner = pbyteraw[int(inner_rectangle.y1):int(inner_rectangle.y2), int(inner_rectangle.x1):int(inner_rectangle.x2)]
-    outer = pbyteraw[int(outer_rectangle.y1):int(outer_rectangle.y2), int(outer_rectangle.x1):int(outer_rectangle.x2)]
+    image = take_image()
+    inner = image[int(inner_rectangle.y1):int(inner_rectangle.y2), int(inner_rectangle.x1):int(inner_rectangle.x2)]
+    outer = image[int(outer_rectangle.y1):int(outer_rectangle.y2), int(outer_rectangle.x1):int(outer_rectangle.x2)]
     ratio = inner.sum() / outer.sum()
 
     # # noise reduction
-    # pbyteraw[pbyteraw < threshhold] = 0
+    #
     ax1.cla()
-    ax1.imshow(pbyteraw, cmap='jet')
+    ax1.imshow(image, cmap='jet')
     ax1.set_title('Camera Image')
     ax1.set_ylabel('y pixel')
     ax1.set_xlabel('x pixel')
