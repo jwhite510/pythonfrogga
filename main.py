@@ -68,6 +68,7 @@ def setup_camera():
     mydll.StTrg_SetIOPinMode(hCamera, 0, 16)
 
 
+
 def after_selection():
     global inner_rectangle
     global outer_rectangle
