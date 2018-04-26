@@ -33,16 +33,19 @@ def setup_camera():
     im_height = 1200
     im_width = 1600
     dwBufferSize = im_height * im_width
+    print('set dwBufferSize:', dwBufferSize)
+
     dwNumberOfByteTrans = c_uint32()
+    # dwNumberOfByteTrans.value = 12 * dwBufferSize
+    # dwNumberOfByteTrans.value = 0
+
     dwFrameNo = c_uint32()
+    # pbyteraw = np.zeros((im_width, im_height), dtype=np.uint8)
     pbyteraw = np.zeros((im_height, im_width), dtype=np.uint8)
     dwMilliseconds = 3000
     # triggermode = 2049
     triggermode = 0
-
-    # set threshold for background reduction
     threshhold = 0
-
 
     #  set up camera capture
     mydll = windll.LoadLibrary('StTrgApi.dll')
@@ -50,45 +53,14 @@ def setup_camera():
     print('hCamera id:', hCamera)
 
     mydll.StTrg_SetTransferBitsPerPixel(hCamera, dwTransferBitsPerPixel)
-
-    # mydll.StTrg_SetScanMode(hCamera, 16, 0, 0, 0, 0)
     mydll.StTrg_SetScanMode(hCamera, 0, 0, 0, 0, 0)
     mydll.StTrg_SetGain(hCamera, 0)
+
+    # mydll.StTrg_SetDigitalGain(hCamera, 64)
     mydll.StTrg_SetDigitalGain(hCamera, 64)
 
-    # mydll.StTrg_GetClock(hCamera, pointer(pdwClockMode), pointer(pdwClock))
-    # clock1 = pdwClock.value
-
-    # pdwExposureValue = c_uint32()
-    # mydll.StTrg_GetExposureClock(hCamera, pointer(pdwExposureValue))
-
-
-    # ms = 0.2  # Exposure time
-    ms = 200
-    # mydll.StTrg_SetExposureClock(hCamera, 7363636)
-    # mydll.StTrg_SetExposureClock(hCamera, 0)
-    # mydll.StTrg_SetExposureMode(hCamera, 1)
-
-
-    pdwClockMode = c_uint32()
-    pdwClock = c_uint32()
-
-
-    # mydll.StTrg_GetClock(hCamera, pointer(pdwClockMode), pointer(pdwClock))
-    # print('pdwclock: ' + str(pdwClock.value))
-
-
-    # mydll.StTrg_SetClock(hCamera, 2, 0)
-    # mydll.StTrg_SetClock(hCamera, 0, 0)
-
-
-    # mydll.StTrg_GetClock(hCamera, pointer(pdwClockMode), pointer(pdwClock))
-    # print('pdwclock: ' + str(pdwClock.value))
-
-
-    # mydll.StTrg_GetExposureClock(hCamera, pointer(pdwExposureValue))
-
-
+    mydll.StTrg_SetExposureClock(hCamera, 200000)
+    mydll.StTrg_SetClock(hCamera, 0, 0)
     mydll.StTrg_SetTriggerMode(hCamera, triggermode)
     mydll.StTrg_SetTriggerTiming(hCamera, 0, 0)
     mydll.StTrg_SetIOPinDirection(hCamera, 0)
@@ -225,9 +197,11 @@ def get_rectangle():
 
 
 def take_image():
+    print('image taken')
     mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
                                 dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
     image = pbyteraw
+    print('max:', np.max(image))
     return image
 
 
