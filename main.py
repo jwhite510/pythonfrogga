@@ -201,8 +201,9 @@ def take_image():
     print('image taken')
     mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
                                 dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
-    image = pbyteraw
+    image = np.rot90(pbyteraw, 1)
     print('max:', np.max(image))
+
     return image
 
 
