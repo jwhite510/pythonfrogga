@@ -35,13 +35,10 @@ def setup_ga():
     #                         define 'individual' to be an individual
     #                         consisting of 100 'attr_bool' elements ('genes')
     toolbox.register("individual", tools.initRepeat, creator.Individual,
-                     toolbox.attr_bool, 5)
+                     toolbox.attr_bool, 9)
 
     # define the population to be a list of individuals
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-
-
-
 
     # ----------
     # Operator registration
@@ -82,7 +79,10 @@ def run_ga():
     # Evaluate the entire population
     fitnesses = list(map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
+        print(ind)
+        print(fit)
         ind.fitness.values = fit
+        exit(0)
     print('initial population: ', pop)
     for ind in pop:
         print(max(ind))
@@ -121,7 +121,7 @@ def run_ga():
 
             # mutate an individual with probability MUTPB
             if random.random() < MUTPB:
-                # toolbox.mutate(mutant)
+                toolbox.mutate(mutant)
                 del mutant.fitness.values
 
 

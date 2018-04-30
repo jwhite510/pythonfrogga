@@ -250,25 +250,21 @@ draw_inner_and_outer()
 
 fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(8,4))
 plt.ion()
-plots_initialized = False
 axis2_set = False
-wavelength_nodes = None
-wavelength = None
-while True:
-    if not plots_initialized:
-        # setup plots
-        wavelength_nodes = np.linspace(lambdamin, lambdamax, number_of_nodes)
-        wavelength = np.linspace(lambdamin, lambdamax, wavelength_points)
-        plots_initialized = True
+wavelength_nodes = np.linspace(lambdamin, lambdamax, number_of_nodes)
+wavelength = np.linspace(lambdamin, lambdamax, wavelength_points)
 
-    # take first image
+while True:
+
+    # take image
     image = take_image()
+
+    # calculate ratio
     inner = image[int(inner_rectangle.y1):int(inner_rectangle.y2), int(inner_rectangle.x1):int(inner_rectangle.x2)]
     outer = image[int(outer_rectangle.y1):int(outer_rectangle.y2), int(outer_rectangle.x1):int(outer_rectangle.x2)]
     ratio = inner.sum() / outer.sum()
 
-    # # noise reduction
-    #
+    # add text to image
     ax1.cla()
     ax1.imshow(image, cmap='jet')
     ax1.set_title('Camera Image')
@@ -287,8 +283,10 @@ while True:
                                  outer_rectangle.y2 - outer_rectangle.y1,
                                  linewidth=2, edgecolor='y', facecolor='none'))
 
+    # generate random numbers
     phi_nodes = 2 * np.pi * np.random.rand(number_of_nodes)
 
+    # cubic interpretation of random numbers
     f = interp1d(wavelength_nodes, phi_nodes, kind='cubic')
 
     ax2.cla()
