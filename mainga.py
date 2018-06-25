@@ -35,23 +35,19 @@ def setup_camera():
     global threshhold
 
     # create parameters for camera
-    dwTransferBitsPerPixel = 1
+    dwTransferBitsPerPixel = 4
     im_height = 1200
     im_width = 1600
-    dwBufferSize = im_height * im_width
-    print('set dwBufferSize:', dwBufferSize)
+    dwBufferSize = im_height * im_width * 2
 
     dwNumberOfByteTrans = c_uint32()
-    # dwNumberOfByteTrans.value = 12 * dwBufferSize
-    # dwNumberOfByteTrans.value = 0
 
     dwFrameNo = c_uint32()
-    # pbyteraw = np.zeros((im_width, im_height), dtype=np.uint8)
-    pbyteraw = np.zeros((im_height, im_width), dtype=np.uint8)
+    pbyteraw = np.zeros((im_height, im_width), dtype=np.uint16)
     dwMilliseconds = 3000
-    # triggermode = 2049
-    triggermode = 0
-    threshhold = 0
+    triggermode = 2049
+    # triggermode = 0
+    # threshhold = 0
 
     #  set up camera capture
     mydll = windll.LoadLibrary('StTrgApi.dll')
@@ -204,10 +200,11 @@ def get_rectangle():
 
 def take_image():
     # print('image taken')
-    mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int8)),
+    mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int16)),
                                 dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
     image = np.rot90(pbyteraw, 1)
     # print('max:', np.max(image))
+    # image = np.zeros((1600, 1200))
 
     return image
 
@@ -243,7 +240,7 @@ def draw_inner_and_outer():
 
 
 def get_p_number():
-    return random.random() * 2 * np.pi
+    return random.random() * 2 * np.pi * 0.1
 
 
 def params_to_daz(wl_send, phi_send):
@@ -252,21 +249,35 @@ def params_to_daz(wl_send, phi_send):
     # print(home)
     os.chdir(r'\\CREOL-FAST-01\data')
     # print(os.getcwd())
-    with open('pythonwavefile.txt', 'w') as file:
-        file.write('phase=2\n#phase')
-        file.write('first line')
-        i = 0
-        while i < len(wl_send):
+    if write_dazzler:
+        with open('pythonwavefile.txt', 'w') as file:
+            file.write('phase=2\n#phase')
+            i = 0
+            while i < len(wl_send):
 
-            file.write('\n')
-            file.write("{:.2f}".format(wl_send[i]))
-            file.write('\t')
-            file.write("{:.4f}".format(phi_send[i]))
-            i += 1
-    with open('requesttest.txt', 'w') as file:
-        proj = r'C:\dazzler\data\pythonwavefile.txt'
-        file.write(proj)
+                file.write('\n')
+                file.write("{:.6f}".format(wl_send[i]))
+                file.write('\t')
+                file.write("{:.6f}".format(phi_send[i]))
+                i += 1
+        print('writing to wavefile')
         time.sleep(0.05)
+
+        fileh = open('request.txt', 'w+')
+        proj = r'C:\dazzler\data\pythonwavefile.txt'
+        fileh.write(proj)
+        time.sleep(0.05)
+        print('writing request')
+        print(fileh.read())
+        time.sleep(0.05)
+        fileh.close()
+
+
+
+
+
+
+        print('writing request.txt')
     os.chdir(home)
     time.sleep(1)
 
@@ -295,6 +306,7 @@ def evalOneMax(individual):
     # plot image
     ax2.cla()
     ax2.plot(wavelength, phi_func(wavelength))
+    ax2.plot(wavelength_nodes, phi_nodes, 'ro')
     ax2.set_title('Applied Phase')
     ax2.yaxis.tick_right()
     ax2.yaxis.set_label_position("right")
@@ -366,7 +378,7 @@ def setup_ga():
     # generation: each individual of the current generation
     # is replaced by the 'fittest' (best) of three individuals
     # drawn randomly from the current generation.
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("select", tools.selTournament, tournsize=4)
 
 
 def run_ga():
@@ -374,7 +386,7 @@ def run_ga():
 
     # create an initial population of 300 individuals (where
     # each individual is a list of integers)
-    pop = toolbox.population(n=population_num)
+    pop = toolbox.population(n=population_size)
 
     # CXPB  is the probability with which two individuals
     #       are crossed
@@ -412,7 +424,10 @@ def run_ga():
         print("-- Generation %i --" % g)
 
         # Select the next generation individuals
+        # print('\npop: ', pop)
+        # print('fitnesses: ', fitnesses)
         offspring = toolbox.select(pop, len(pop))
+
         # Clone the selected individuals
         offspring = list(map(toolbox.clone, offspring))
 
@@ -439,7 +454,10 @@ def run_ga():
 
             # mutate an individual with probabililty MUTPB2
             if random.random() < MUTPB2:
+                # print('before: ', mutant)
                 tools.mutGaussian(mutant, mu=0.0, sigma=0.2, indpb=0.2)
+                # print('after: ', mutant)
+                # exit(0)
                 del mutant.fitness.values
 
 
@@ -479,13 +497,12 @@ def run_ga():
 if __name__ == '__main__':
     # genetic algorithm parameters
     write_dazzler = True
-    number_of_nodes = 20
-    wavelength_points = 300
-    lambdamin = 670
-    lambdamax = 930
-    population_num = 5
+    number_of_nodes = 30
+    wavelength_points = 100
+    lambdamin = 700
+    lambdamax = 900
+    population_size = 20
     generations = 100
-
 
     setup_camera()
     get_rectangle()
