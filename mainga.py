@@ -244,11 +244,8 @@ def get_p_number():
 
 
 def params_to_daz(wl_send, phi_send):
-    # print('sending to dazzler')
     home = os.getcwd()
-    # print(home)
     os.chdir(r'\\CREOL-FAST-01\data')
-    # print(os.getcwd())
     if write_dazzler:
         with open('pythonwavefile.txt', 'w') as file:
             file.write('phase=2\n#phase')
@@ -263,19 +260,24 @@ def params_to_daz(wl_send, phi_send):
         print('writing to wavefile')
         time.sleep(0.05)
 
-        fileh = open('request.txt', 'w+')
-        proj = r'C:\dazzler\data\pythonwavefile.txt'
-        fileh.write(proj)
-        time.sleep(0.05)
-        print('writing request')
-        print(fileh.read())
-        time.sleep(0.05)
-        fileh.close()
+
+        with open('request.txt', 'w') as file:
+            proj = r'C:\dazzler\data\pythonwavefile.txt'
+            file.write(proj)
+            file.flush()
+            time.sleep(0.05)
 
 
 
-
-
+        ### worked
+        # fileh = open('request.txt', 'w+')
+        # proj = r'C:\dazzler\data\pythonwavefile.txt'
+        # fileh.write(proj)
+        # time.sleep(0.05)
+        # print('writing request')
+        # print(fileh.read())
+        # time.sleep(0.05)
+        # fileh.close()
 
         print('writing request.txt')
     os.chdir(home)
