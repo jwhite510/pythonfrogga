@@ -257,8 +257,8 @@ def params_to_daz(wl_send, phi_send):
                 file.write('\t')
                 file.write("{:.6f}".format(phi_send[i]))
                 i += 1
-        print('writing to wavefile')
-        time.sleep(0.05)
+        # print('writing to wavefile')
+        # time.sleep(0.05)
 
 
         with open('request.txt', 'w') as file:
@@ -279,7 +279,7 @@ def params_to_daz(wl_send, phi_send):
         # time.sleep(0.05)
         # fileh.close()
 
-        print('writing request.txt')
+        # print('writing request.txt')
     os.chdir(home)
     time.sleep(1)
 
