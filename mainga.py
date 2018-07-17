@@ -14,6 +14,8 @@ import os
 
 inner_rectangle = None
 outer_rectangle = None
+first_photo_taken = False
+highest_quality = 0
 
 
 class Coordinates:
@@ -286,6 +288,9 @@ def params_to_daz(wl_send, phi_send):
 
 
 def evalOneMax(individual):
+
+    global highest_quality
+    global first_photo_taken
     # the goal ('fitness') function to be maximized
     # print('\n EVALUATING \n')
 
@@ -331,9 +336,53 @@ def evalOneMax(individual):
                                  outer_rectangle.y2 - outer_rectangle.y1,
                                  linewidth=2, edgecolor='y', facecolor='none'))
 
+    # calculate uniformity
+    ax_uni[0].cla()
+    ax_uni[0].imshow(image, cmap='jet')
+    ax_uni[0].text(0, 100, 'Ratio: ' + str(np.round(ratio, 5)), color='black', backgroundcolor='yellow')
+
+    ax_uni[0].add_patch(patch.Rectangle((inner_rectangle.x1, inner_rectangle.y1),
+                                 inner_rectangle.x2 - inner_rectangle.x1,
+                                 inner_rectangle.y2 - inner_rectangle.y1,
+                                 linewidth=2, edgecolor='r', facecolor='none'))
+    image_proc = image[:, :]
+    center = image_proc[int(inner_rectangle.y1):int(inner_rectangle.y2), int(inner_rectangle.x1):int(inner_rectangle.x2)]
+    center_1d = np.sum(center, 1)
+    ref_signal = np.max(center_1d) * np.ones_like(center_1d)
+    delta_I = np.abs(ref_signal - center_1d)
+    beta = 0.5
+    alpha = beta * np.max(center_1d)
+    uni_vals = np.exp(- (delta_I**2 / alpha**2))
+
+    # delta I
+    ax_uni[1].cla()
+    ax_uni[1].plot(ref_signal)
+    ax_uni[1].plot(center_1d)
+
+    # uniformity
+    ax_uni[2].cla()
+    ax_uni[2].plot(uni_vals)
+    uniformity = (1/len(uni_vals)) * np.sum(uni_vals)
+    ax_uni[2].text(0.5, 0.5, 'Uniformity: ' + str(np.round(uniformity, 5)),
+                   color='black', backgroundcolor='yellow', transform=ax_uni[2].transAxes)
+
+    ax_uni[1].text(0, 0.2, 'Uniformity * ratio: ' + str(np.round(uniformity * ratio, 5)),
+                   color='black', backgroundcolor='yellow', transform=ax_uni[1].transAxes)
+    # print(uniformity * ratio)
+
+    if ratio * uniformity > highest_quality:
+        # print('new best: ', ratio * uniformity, 'saving image')
+        np.save("best_quality", image)
+        highest_quality = ratio * uniformity
+
+    if not first_photo_taken:
+        # print("taking first photo")
+        np.save("initial", image)
+        first_photo_taken = True
+
     plt.show()
     plt.pause(0.001)
-    return ratio,
+    return (ratio * uniformity),
     # return sum(individual),
 
 
@@ -505,7 +554,7 @@ if __name__ == '__main__':
     lambdamin = 650
     lambdamax = 900
     population_size = 100
-    generations = 100
+    generations = 25
 
     setup_camera()
     get_rectangle()
@@ -513,6 +562,7 @@ if __name__ == '__main__':
     draw_inner_and_outer()
 
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(8,4))
+    fig2, ax_uni = plt.subplots(ncols=3, figsize=(8,4))
     plt.ion()
     wavelength_nodes = np.linspace(lambdamin, lambdamax, number_of_nodes)
     wavelength = np.linspace(lambdamin, lambdamax, wavelength_points)
