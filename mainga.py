@@ -203,6 +203,7 @@ def take_image():
     mydll.StTrg_TakeRawSnapShot(hCamera, pbyteraw.ctypes.data_as(POINTER(c_int16)),
                                 dwBufferSize, pointer(dwNumberOfByteTrans), pointer(dwFrameNo), dwMilliseconds)
     image = np.rot90(pbyteraw, 1)
+    # print("max signal: ", np.max(image))
     # print('max:', np.max(image))
     # image = np.zeros((1600, 1200))
 
@@ -240,7 +241,7 @@ def draw_inner_and_outer():
 
 
 def get_p_number():
-    return random.random() * 2 * np.pi * 0.1
+    return random.random() * 2 * np.pi*2
 
 
 def params_to_daz(wl_send, phi_send):
@@ -499,11 +500,11 @@ def run_ga():
 if __name__ == '__main__':
     # genetic algorithm parameters
     write_dazzler = True
-    number_of_nodes = 30
-    wavelength_points = 100
-    lambdamin = 700
+    number_of_nodes = 20
+    wavelength_points = 300
+    lambdamin = 650
     lambdamax = 900
-    population_size = 20
+    population_size = 100
     generations = 100
 
     setup_camera()
